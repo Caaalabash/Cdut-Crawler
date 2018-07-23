@@ -16,3 +16,9 @@ DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
 
 #PATH
 RootPath = Path.getRootPath()
+
+#Email Config
+emai_host = 'smtp.qq.com'
+email_port = 465
+email_username = '发件人邮箱'
+email_passwd = '邮箱授权码'

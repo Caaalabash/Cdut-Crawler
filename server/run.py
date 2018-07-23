@@ -16,6 +16,7 @@ def hello_world():
 #code 2 :已经订阅过
 #code 1 :用户名/密码错误
 #code 0 :订阅成功
+#code -1 :连接服务器失败
 @app.route("/api/cdut/subscribe",methods=["POST"])
 def save():
   username = request.form.get('user')
@@ -23,6 +24,7 @@ def save():
   email = request.form.get('email')
   needCheck = request.form.get('check')
   global resp
+
   # 检查是否已经订阅过
   check = userCollection.find_one({"user":username})
   if(check != None):
@@ -30,8 +32,12 @@ def save():
   else :
     # 检查是否可以登录
     result = Crawler.login(username, password)
+    # 无法连接到服务器
     if (result == False):
-      resp = jsonify({'code': "1"})
+      resp = jsonify({'code': "-1"})
+    # 账号/密码错误
+    elif(result ==True):
+      resp = jsonify({"code": "1"})
     else:
       # 如果用户想要立即检查: 就push进redis队列
       queue = RedisQueue("taskQueue")
@@ -41,7 +47,6 @@ def save():
       else :
         str = " ".join((username, password, email, "false"))
       queue.put(str)
-
       obj = {
         "user": username,
         "pwd": password,

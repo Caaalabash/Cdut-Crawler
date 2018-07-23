@@ -29,21 +29,29 @@ def getHeaders(cookie):
 def getMd5pwd(pwd):
   return execjs.compile(open(r"{0}/spider/md5.js".format(Config.RootPath)).read()).call('hex_md5', pwd)
 
-# 根据用户名/密码发送登录请求 成功返回设置的cookie值,失败返回false
+# 根据用户名/密码发送登录请求
+# 登录成功返回 cookie
+# 登录失败返回 True
+# 连接服务器失败返回 False
 def login(username,password):
   t = round(time.time() * 1000)
   tstr = str(t)
   action = "Login"
   pwd = getMd5pwd(username + tstr + getMd5pwd(password))
-  r = requests.post(loginService, data={
-    "Action": action,
-    "userName": username,
-    "pwd": pwd,
-    "sign": t
-  })
-  if (r.text == "0"):
-    return r.headers["Set-Cookie"]
-  else :
+
+  try:
+    r = requests.post(loginService, data={
+      "Action": action,
+      "userName": username,
+      "pwd": pwd,
+      "sign": t
+    })
+    if (r.text == "0"):
+      return r.headers["Set-Cookie"]
+    else :
+      return True
+
+  except Exception as err:
     return False
 
 # 请求成绩页面 返回Dom树
@@ -92,7 +100,8 @@ def compare(dataFromDB,crawlerData):
 def init(collection,user,pwd,email,wannaSend):
   res = login(user, pwd)
   try:
-    if (res != False):
+    # 如果返回了Cookie
+    if (res != False and res != True):
       # 处理cookie 这里也许要改一下
       list = res.split(";")
       cookie = list[0] + ";" + list[2].split(",")[1]
