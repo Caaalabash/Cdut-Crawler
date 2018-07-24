@@ -1,5 +1,6 @@
 import redis
 import logging
+import random
 import server.config as Config
 
 r = redis.Redis()
@@ -7,7 +8,10 @@ r = redis.Redis()
 class RedisQueue(object):
   def __init__(self, name, namespace='queue'):
     self.__db = redis.Redis(Config.redis_host,Config.redis_port,0)
-    self.key = '%s:%s' % (namespace, name)
+    if(namespace==''):
+      self.key = '%s' % (name)
+    else:
+      self.key = '%s:%s' % (namespace, name)
     logging.info("Connect Redis Success")
 
   def qsize(self):
@@ -19,3 +23,7 @@ class RedisQueue(object):
     # 直接返回队列第一个元素，如果队列为空返回的是None
     item = self.__db.lpop(self.key)
     return item
+  def get_random_item(self):
+    length = self.__db.llen(self.key)
+    index = random.random(0,length)
+    return self.__db.lindex(self.key,index)
